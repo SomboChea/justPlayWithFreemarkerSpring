@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 
-
 @Controller
 @RequestMapping
 class HomeController {
@@ -42,8 +41,7 @@ class HomeController {
         val t = Template("temp.ftl", value, cfg)
 
         val builder = ReportBuilder(data)
-        val raw = t //FreeMakerUtils.convertTemplateToHtmlString(t)
-
+        val raw = FreeMakerUtils.convertStringHtmlToTemplate(sourceCode = value)
         return FreeMakerUtils.convertToString(raw, mapOf(
                 "name" to "Sambo",
                 "data" to builder,

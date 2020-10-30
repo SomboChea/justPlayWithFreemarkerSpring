@@ -3,7 +3,6 @@ package com.example.demo
 import freemarker.cache.TemplateLoader
 import freemarker.template.Configuration
 import freemarker.template.Template
-import freemarker.template.TemplateExceptionHandler
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
 import java.io.Reader
 import java.io.StringReader
@@ -38,13 +37,16 @@ object FreeMakerUtils {
         return str
     }
 
-
     fun convertToTemplate(contentHtml: String): Template {
         val oldConfig = getConfiguration().templateLoader
         getConfiguration().templateLoader = CustomTemplateLoader()
         val data = getConfiguration().getTemplate(contentHtml, null, "UTF-8", true, true)
         getConfiguration().templateLoader = oldConfig
         return data
+    }
+
+    fun convertStringHtmlToTemplate(name: String = "temp", sourceCode: String): Template {
+        return Template(name, sourceCode, getConfiguration())
     }
 }
 
@@ -64,5 +66,4 @@ class CustomTemplateLoader : TemplateLoader {
     override fun findTemplateSource(name: String?): Any {
         return name.toString()
     }
-
 }
