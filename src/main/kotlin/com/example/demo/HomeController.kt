@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import freemarker.template.Configuration
 import freemarker.template.DefaultObjectWrapper
 import freemarker.template.Template
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
@@ -52,7 +54,22 @@ class HomeController {
 
 @RestController
 @RequestMapping("/api")
-class HomeApiController {
+class HomeApiController @Autowired constructor(
+        private val applicationContext: ApplicationContext
+) {
+    @GetMapping("/invoker")
+    fun invoker(
+            @RequestParam(value = "calling", defaultValue = "false") calling: Boolean,
+            @RequestParam(value = "method", defaultValue = "generate") method: String,
+    ): Any? {
+        return AppContextUtils.invoker(
+                "myGenerator",
+                method,
+                listOf(Boolean::class.java),
+                listOf(calling),
+        )
+    }
+
     @GetMapping
     fun api(): Any {
         val data: List<Employee> = listOf(
