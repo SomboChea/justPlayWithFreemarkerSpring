@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 
 @Controller
 @RequestMapping
@@ -37,10 +38,6 @@ class HomeController {
                 Employee(1, "Sambo", "Software"),
                 Employee(3, "Chea", "Hello World"),
         )
-        val cfg = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)
-        cfg.objectWrapper = DefaultObjectWrapper(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)
-
-        val t = Template("temp.ftl", value, cfg)
 
         val builder = ReportBuilder(data)
         val raw = FreeMakerUtils.convertStringHtmlToTemplate(sourceCode = value)
@@ -83,13 +80,13 @@ class HomeApiController @Autowired constructor(
     @GetMapping("/fields")
     fun apiFields(): Any {
         val data: List<Employee> = listOf(
-                Employee(1, "Sambo", "Software Developer"),
+                Employee(1, "Sambo", "Software Developer", 150.0),
                 Employee(2, "Neli", "Developer Specialized"),
         )
 
         return data
                 .toJsonNode()
-                .getFieldsFromJsonNode()
+                .findValues("salary").sumByDouble { it.asDouble() }
     }
 }
 
@@ -116,6 +113,31 @@ class ReportBuilder<T>(
         return _columns ?: emptyList()
     }
 
+    fun getAggregate(functionName: String, field: String): Any? {
+            return when (functionName) {
+                "sum" -> {
+                    data.toJsonNode()
+                            .findValues(field)
+                            .sumBy { it.asInt() }
+                }
+                "sumDouble" -> {
+                    data.toJsonNode()
+                            .findValues(field)
+                            .sumByDouble { it.asDouble() }
+                }
+                "sumDecimal" -> {
+                    var value = BigDecimal.ZERO
+                    getData().toJsonNode()
+                            .findValues(field)
+                            .forEach {
+                                value = value.plus(it.decimalValue())
+                            }
+                    value
+                }
+                else -> "-1"
+            }
+    }
+
     fun getData(): List<T> {
         return data
     }
@@ -125,6 +147,7 @@ class Employee(
         val id: Long,
         val name: String,
         val position: String,
+        val salary: Double = 100.0,
 )
 
 object JsonUtils {
