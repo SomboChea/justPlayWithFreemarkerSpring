@@ -83,6 +83,17 @@ class HomeApiController @Autowired constructor(
         return data.toJsonNode()
     }
 
+    @GetMapping("/json")
+    fun apiJson(): Any? {
+        val data = """
+            [{"name": "Sambo"},{"name": "Chea"}]
+        """.trimIndent()
+
+        val json = JsonUtils.getObjectMapper().readValue(data, JsonNode::class.java)
+        println(json)
+        return json
+    }
+
     @GetMapping("/fields")
     fun apiFields(): Any {
         val data: List<Employee> = listOf(

@@ -24,6 +24,7 @@ data class ReportTemplateResponse(
         var dataSource: DataSourceTemplate? = null,
         var options: Map<String, Any?>? = null,
 ) : Serializable {
+    @JsonIgnore
     fun getReportBuilder(): ReportBuilder<Any?> {
         return ReportBuilder(
                 data = dataSource?.getData() ?: emptyList()
@@ -31,7 +32,7 @@ data class ReportTemplateResponse(
     }
 
     fun getOutput(): String? {
-        val model = mutableMapOf<String, Any?>("data" to getReportBuilder())
+        val model = mutableMapOf<String, Any?>("report" to getReportBuilder())
         model.putAll(options ?: emptyMap())
         return template?.toHtmlString(model)
     }
