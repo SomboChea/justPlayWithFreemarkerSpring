@@ -4,9 +4,6 @@ import com.example.demo.JsonUtils.getFieldsFromJsonNode
 import com.example.demo.JsonUtils.toJsonNode
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import freemarker.template.Configuration
-import freemarker.template.DefaultObjectWrapper
-import freemarker.template.Template
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Controller
@@ -46,6 +43,15 @@ class HomeController {
                 "data" to builder,
                 "emp" to Employee(1, "Sambo", "Software Developer"),
         ))
+    }
+
+    @GetMapping("/request")
+    @ResponseBody
+    fun getRequestTemplate(
+            @RequestBody request: ReportTemplateRequest
+    ): Any? {
+        val view = request.toResponse()
+        return view.getOutput()
     }
 }
 
@@ -114,28 +120,28 @@ class ReportBuilder<T>(
     }
 
     fun getAggregate(functionName: String, field: String): Any? {
-            return when (functionName) {
-                "sum" -> {
-                    data.toJsonNode()
-                            .findValues(field)
-                            .sumBy { it.asInt() }
-                }
-                "sumDouble" -> {
-                    data.toJsonNode()
-                            .findValues(field)
-                            .sumByDouble { it.asDouble() }
-                }
-                "sumDecimal" -> {
-                    var value = BigDecimal.ZERO
-                    getData().toJsonNode()
-                            .findValues(field)
-                            .forEach {
-                                value = value.plus(it.decimalValue())
-                            }
-                    value
-                }
-                else -> "-1"
+        return when (functionName) {
+            "sum" -> {
+                data.toJsonNode()
+                        .findValues(field)
+                        .sumBy { it.asInt() }
             }
+            "sumDouble" -> {
+                data.toJsonNode()
+                        .findValues(field)
+                        .sumByDouble { it.asDouble() }
+            }
+            "sumDecimal" -> {
+                var value = BigDecimal.ZERO
+                getData().toJsonNode()
+                        .findValues(field)
+                        .forEach {
+                            value = value.plus(it.decimalValue())
+                        }
+                value
+            }
+            else -> "-1"
+        }
     }
 
     fun getData(): List<T> {
@@ -162,14 +168,17 @@ object JsonUtils {
     }
 
     fun Any?.toJsonNode(): JsonNode {
-        return getObjectMapper().readTree(this.toJsonString())
+        return getObjectMapper().readTree(
+                if (this is String) {
+                    this
+                } else this.toJsonString()
+        )
     }
 
     fun JsonNode.getFieldsFromJsonNode(): List<String> {
         val fields = mutableListOf<String>()
         val i = this.elementAtOrNull(0)?.fieldNames()
         i?.forEachRemaining {
-            println(it)
             fields.add(it)
         }
         return fields
